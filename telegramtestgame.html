@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telegram Game</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    canvas { display: block; margin: auto; background: #f0f0f0; }
+    #score { text-align: center; font-size: 20px; margin: 10px; }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreElement = document.getElementById('score');
+    let score = 0;
+    let objects = [];
+    let gameOver = false;
+
+    function createObject() {
+      return {
+        x: Math.random() * (canvas.width - 30),
+        y: -30,
+        size: 30,
+        speed: 0.2 + Math.random() * 0.3,
+      };
+    }
+
+    function drawObject(obj) {
+      ctx.fillStyle = 'blue';
+      ctx.fillRect(obj.x, obj.y, obj.size, obj.size);
+    }
+
+    function updateObjects() {
+      for (let obj of objects) {
+        obj.y += obj.speed;
+        if (obj.y > canvas.height) {
+          gameOver = true;
+        }
+      }
+      objects = objects.filter(obj => obj.y <= canvas.height);
+    }
+
+    function checkCollision(mouseX, mouseY) {
+      for (let i = objects.length - 1; i >= 0; i--) {
+        const obj = objects[i];
+        if (
+          mouseX >= obj.x &&
+          mouseX <= obj.x + obj.size &&
+          mouseY >= obj.y &&
+          mouseY <= obj.y + obj.size
+        ) {
+          objects.splice(i, 1);
+          score++;
+          scoreElement.textContent = `Score: ${score}`;
+        }
+      }
+    }
+
+    canvas.addEventListener('click', event => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+      checkCollision(mouseX, mouseY);
+    });
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!gameOver) {
+        if (Math.random() < 0.03) {
+          objects.push(createObject());
+        }
+        updateObjects();
+        for (let obj of objects) {
+          drawObject(obj);
+        }
+        requestAnimationFrame(gameLoop);
+      } else {
+        ctx.fillStyle = 'red';
+        ctx.textAlign = 'center';
+        ctx.font = '30px Arial';
+        ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2);
+      }
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
